@@ -46,13 +46,11 @@ class RockPaperScissors:
         result = self.determine_winner()
         print(result)
 
-RockPaperScissors().play() 
+
+
 while True:
+    RockPaperScissors().play() 
     again = input("다시 하시겠습니까? (y/n): ").strip().lower()
     if again == 'y':
-        RockPaperScissors().play()
-    elif again == 'n':
         print("게임을 종료합니다.")
         break
-    else:
-        print("잘못된 입력입니다. y 또는 n을 입력하세요.")
