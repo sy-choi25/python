@@ -33,6 +33,8 @@ class RockPaperScissors:
         if self.user_choice == self.computer_choice:
             return "무승부"
         elif (self.user_choice == 1 and self.computer_choice == 3) or \
+             (self.user_choice == 2 and self.computer_choice == 1) or \
+             (self.user_choice == 3 and self.computer_choice == 2):
             return "사용자 승리"
         else:
             return "컴퓨터 승리"
@@ -44,4 +46,11 @@ class RockPaperScissors:
         result = self.determine_winner()
         print(result)
 
-RockPaperScissors().play() 
+
+
+while True:
+    RockPaperScissors().play() 
+    again = input("다시 하시겠습니까? (y/n): ").strip().lower()
+    if again == 'y':
+        print("게임을 종료합니다.")
+        break
