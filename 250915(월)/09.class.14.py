@@ -37,9 +37,18 @@ class Product:
             self._product_stock = value            
 
     def __str__(self):
-        return f'상품명: {self.product_name}, 가격: {self.product_price}, 재고: {self.product_stock}'
-    
+        return f'상품명: {self.product_name}, \   # 문장이 길때 \ 넣으면 한줄로 인식
+            가격: {self.product_price}, 재고: {self.product_stock}'
 
+    def remove_if_empty(self, products):
+        if self.product_stock > 0:
+            print(f"{self.product_name}은 재고가 남아 있어 삭제할 수 없습니다.")
+        else:
+            products.remove(self)
+            print(f"{self.product_name} 삭제 완료")
+
+    def __eq__(self, value):                        #가격 x 수량을 기준으로 같다, 크다, 크거나 같다, 작거나 같다
+        return self._product_stock == value._product_stock
 
 product = [
     Product("노트북", 100000,10),
@@ -47,45 +56,51 @@ product = [
     Product("태블릿", 300000,15)
 ]
 
+product[0] = note
+product[1] = smart
+product[2] = tab
+
 
 # 노트북의 가격을 20% 인하
+# 몇번쨰에 있는지 모를 때 인덱스말고 for 문으로
+for p in product:
+    if p.product_name == '노트북':
+        p.product_price  = p.product_price * 0.8
+
 # 스마트폰은 가격을 10% 인상
-# 제품 출력
-# 제품 추가
-# 제품 삭제 - 수량이 남아 있으면 삭제 못하게
-# 현재 모든 제품의 수량의 합
-# 가격 x 수량을 기준으로 같다, 크다, 크거나 같다, 작거나 같다
-
-
-note = product[0]
-smart = product[1]
-tab = product[2]
-# 1.
-print(note)
-note.product_price = note.product_price*0.8
-print(note)
-
-# 2
 print(smart)
 smart.product_price = (smart.product_price*0.1)+ smart.product_price
 print(smart)
 
-# 3.
+for p in product:
+    if p.product_name == '스마트폰':
+        p.product_price  = p.product_price * 0.1+p.product_price
+
+# 제품 출력
 for p in product:
     print(p)
 
-# 4.
+# 제품 추가
 product.append(Product("헤드폰", 50000, 30))
 
-# 5
+# 제품 삭제 - 수량이 남아 있으면 삭제 못하게
+del_productname = 'TV'
+for idex, p in enumerate(products):
+    if p.product_name=='TV'
+        del products[idx]
+        break
 
-# 6
+# 현재 모든 제품의 수량의 합
 # 1)
 total_stock = 0
 for p in product:
     total_stock += p.product_stock
 
 print("모든 제품의 총 재고:", total_stock)
+
 #2)
 total_stock = sum(p.product_stock for p in product)
 print("모든 제품의 총 재고:", total_stock)
+
+# 가격 x 수량을 기준으로 같다, 크다, 크거나 같다, 작거나 같다
+products[0] == 
