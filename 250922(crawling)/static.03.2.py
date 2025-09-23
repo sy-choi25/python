@@ -26,6 +26,6 @@ for page_num in range(1,47):
                 '''
         # cur.execute(sql,( , , , ,  )  )
             cur.executemany(sql,crawlingcoffe.get_data(page_num))  # row를 구성하는 튜플들의 리스트
-        conn.commit()
+        conn.commit()                                              # page_num은 반복문이 몇번째 돌고 있는지 현재 수집중인 페이지 번호
 
 # 전체 페이지 내용 저장
