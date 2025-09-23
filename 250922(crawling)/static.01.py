@@ -9,4 +9,4 @@ from_data = {
     'store' : ''
 }
 response = requests.post(url,data=from_data)
-print(response.text[:500])
+print(response.text[:500])      # 소스의 전체코드가 response.text가 들어있어서 최대 500으로 제한
