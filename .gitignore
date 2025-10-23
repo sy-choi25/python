@@ -6,3 +6,6 @@
 *.splite3
 *.db
 *.__pycache__
+
+# 데이터셋 무시
+*.txt
