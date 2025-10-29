@@ -9,4 +9,7 @@
 
 # 데이터셋 무시
 *.txt
-*.gz"deep_learning/data/cifar-10-python.tar.gz" 
+*.gz
+deep_learning/cifar-10-python.tar.gz
+deep_learning/data/cifar-10-python.tar.gz
+deep_learning/data/horse-or-human/
