@@ -1,0 +1,4 @@
+# 폰트크기 
+<span style="font-size:20px;">텍스트</span>
+# 폰트색
+<span style="color: blue;">텍스트</span>
