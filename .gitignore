@@ -15,3 +15,6 @@ deep_learning/data/cifar-10-python.tar.gz
 deep_learning/data/horse-or-human/
 deep_learning/14.LSTM_RNN.ipynb
 *.png
+
+# 20newsgroups 데이터셋
+LLM/20newsbydate/
