@@ -8,6 +8,9 @@
 <span style="color: #FFD700;">금색 (Gold)</span>
 <span style="color: #32CD32;">라임 그린 (LimeGreen)</span>
 <span style="color: #8A2BE2;">블루 바이올렛 (BlueViolet)</span>
+<span style="color: Gold">
+<span style="color: pink">
+
 # 강조
 <p>이 문장에서 <mark>이 부분</mark>이 강조됩니다.</p>
 
