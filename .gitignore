@@ -18,3 +18,5 @@ deep_learning/14.LSTM_RNN.ipynb
 
 # 20newsgroups 데이터셋
 LLM/20newsbydate/
+LLM/11_4.attention.ipynb
+LLM/training_checkpoints
