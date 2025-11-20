@@ -3,13 +3,6 @@
 # 조건을 평균이 60 이상이고, kor, eng, math  변수의 각 값이 40이상 일때만
 # 합격을 출력하는 프로그램
 
-# kor =int(input('국어점수 입력'))
-# eng =int(input('영어점수 입력'))
-# math =int(input('수학점수 입력'))
-# avg=
-# if avg >=60 and kor >= and eng >= and math >= :
-#     print('합격')
-
 kor =int(input('국어점수 입력'))
 eng =int(input('영어점수 입력'))
 math =int(input('수학점수 입력'))
