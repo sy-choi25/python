@@ -41,5 +41,3 @@ for page_num in tqdm.tqdm(range(1,47)):     # 47은 페이지 수
                     conn.commit()           # DB에 실제로 반영                              # 쿼리 순서에 따라 인덱스 순서 변경
                 else:
                     conn.commit()
-
-                    

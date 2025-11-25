@@ -9,6 +9,7 @@
 <span style="color: #32CD32;">라임 그린 (LimeGreen)</span>
 <span style="color: #8A2BE2;">블루 바이올렛 (BlueViolet)</span>
 <span style="color: Gold">
+<span style="color: yellow">
 <span style="color: pink">
 <span style="color: lightblue;">
 
