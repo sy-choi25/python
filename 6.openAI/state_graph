@@ -1,0 +1,13 @@
+// State Graph
+digraph {
+	START [label=START]
+	internal_search [label="Internal Search"]
+	web_search [label="Web Search"]
+	generate [label=Generate]
+	END [label=END]
+	START -> internal_search
+	internal_search -> web_search [label="web_search 조건"]
+	internal_search -> generate [label="generate 조건"]
+	web_search -> generate
+	generate -> END
+}
