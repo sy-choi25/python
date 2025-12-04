@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>하이브리드 검색 사이클</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: linear-gradient(to bottom right, #fafafa, #f3f4f6);
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .header p {
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.6);
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: default; /* **수정: 인터랙션 제거 (pointer -> default)** */
+        }
+        /* **제거: .step:hover 스타일 (인터랙션 제거)**
+        .step:hover {
+            background: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transform: scale(1.02);
+        }
+        */
+        .icon-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        .icon-blue { background: #3b82f6; }
+        .icon-purple { background: #a855f7; }
+        .icon-green { background: #22c55e; }
+        .icon-orange { background: #f97316; }
+        .icon-yellow { background: #eab308; }
+        .step-content { flex: 1; }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .step-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .step-description {
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+        .step-detail {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+            display: block; /* **수정: 상세 설명 항상 표시** (none -> block) */
+        }
+        /* **제거: .step:hover .step-detail { display: block; } (인터랙션 제거)** */
+
+        /* --- 나머지 스타일 유지 --- */
+        .arrow {
+            width: 24px;
+            height: 24px;
+            color: #9ca3af;
+        }
+        .divider {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .divider-line {
+            width: 1px;
+            height: 48px;
+        }
+        .divider-purple { background: #d8b4fe; }
+        .divider-green { background: #bbf7d0; }
+        .merge-visual {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        .merge-box {
+            position: relative;
+            width: 96px;
+            height: 48px;
+        }
+        .merge-line-left {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1px;
+            height: 24px;
+            background: #d8b4fe;
+        }
+        .merge-line-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 1px;
+            height: 24px;
+            background: #bbf7d0;
+        }
+        .merge-line-center {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 1px;
+            height: 24px;
+            background: #fed7aa;
+            transform: translateX(-50%);
+        }
+        .merge-line-horizontal {
+            position: absolute;
+            left: 0;
+            top: 24px;
+            width: 100%;
+            height: 1px;
+            background: #fed7aa;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        .info-card {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid;
+        }
+        .info-card-purple {
+            background: #faf5ff;
+            border-color: #e9d5ff;
+        }
+        .info-card-green {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .info-card h3 {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .info-card-purple h3 { color: #7c3aed; }
+        .info-card-green h3 { color: #16a34a; }
+        .info-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .info-card li {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+        .section h3 {
+            font-size: 1.5rem;
+            color: #374151;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .section p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        .ensemble-diagram {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #8b5cf6;
+            margin: 1.5rem 0;
+        }
+        .ensemble-diagram pre {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #1f2937;
+            overflow-x: auto;
+        }
+        .formula-box {
+            background: #fef3c7;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid #fbbf24;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .formula {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #92400e;
+            font-family: 'Times New Roman', serif;
+            margin: 1rem 0;
+        }
+        .example-box {
+            background: #ecfdf5;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #10b981;
+            margin: 1.5rem 0;
+        }
+        .example-title {
+            font-weight: bold;
+            color: #065f46;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .calculation {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .highlight {
+            background: #fef08a;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+        }
+        .advantage-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(to right, #dbeafe, #f3e8ff);
+            border: 2px solid #93c5fd;
+            border-radius: 0.75rem;
+        }
+        .advantage-box h3 {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .advantage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .advantage-item span { font-weight: 600; }
+        svg { width: 32px; height: 32px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>하이브리드 검색 사이클</h1>
+            <p>Dense Search + Sparse Search의 결합</p>
+        </div>
+
+        <div class="step-container">
+            <div class="step">
+                <div class="icon-box icon-blue">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-number">STEP 1</span>
+                        <h3 class="step-title">사용자 쿼리</h3>
+                    </div>
+                    <p class="step-description">사용자가 질문을 입력합니다</p>
+                    <div class="step-detail">예: '인공지능의 최신 트렌드는?'</div>
+                </div>
+                <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+
+            <div class="divider">
+                <div class="divider-line divider-purple"></div>
+                <div class="divider-line divider-green"></div>
+            </div>
+
+            <div class="step">
+                <div class="icon-box icon-purple">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-number">STEP 2</span>
+                        <h3 class="step-title">Dense 검색 (앙상블 1)</h3>
+                    </div>
+                    <p class="step-description">의미 기반 벡터 검색</p>
+                    <div class="step-detail">임베딩 모델로 쿼리를 벡터화하여 의미적으로 유사한 문서를 찾습니다.</div>
+                </div>
+                <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+
+            <div class="step">
+                <div class="icon-box icon-green">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-number">STEP 3</span>
+                        <h3 class="step-title">Sparse 검색 (앙상블 2)</h3>
+                    </div>
+                    <p class="step-description">키워드 기반 검색</p>
+                    <div class="step-detail">BM25 알고리즘으로 정확한 키워드 매칭을 수행합니다.</div>
+                </div>
+                <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+
+            <div class="merge-visual">
+                <div class="merge-box">
+                    <div class="merge-line-left"></div>
+                    <div class="merge-line-right"></div>
+                    <div class="merge-line-center"></div>
+                    <div class="merge-line-horizontal"></div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="icon-box icon-orange">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-number">STEP 4</span>
+                        <h3 class="step-title">RRF로 결과 병합</h3>
+                    </div>
+                    <p class="step-description">Reciprocal Rank Fusion으로 통합</p>
+                    <div class="step-detail">각 검색의 순위를 기반으로 점수를 계산합니다. 공식: 점수 = 1 / (순위 + k)</div>
+                </div>
+                <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+
+            <div class="step">
+                <div class="icon-box icon-yellow">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-number">STEP 5</span>
+                        <h3 class="step-title">최종 결과</h3>
+                    </div>
+                    <p class="step-description">최적화된 검색 결과 반환</p>
+                    <div class="step-detail">의미와 키워드 모두를 고려한 정확도 높은 문서들을 제공합니다.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card info-card-purple">
+                <h3>⚡ Dense Search</h3>
+                <ul>
+                    <li>• 의미 기반 검색 (Semantic Search)</li>
+                    <li>• 임베딩 벡터 유사도 계산</li>
+                    <li>• 동의어, 유사 표현 검색에 강함</li>
+                    <li>• 예: BERT, Sentence-BERT</li>
+                </ul>
+            </div>
+            <div class="info-card info-card-green">
+                <h3>📝 Sparse Search</h3>
+                <ul>
+                    <li>• 키워드 기반 검색</li>
+                    <li>• 단어 빈도/중요도 기반</li>
+                    <li>• 정확한 용어 매칭에 강함</li>
+                    <li>• 예: Elasticsearch, BM25</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 앙상블 (Ensemble)이란?</h2>
+            <p>음악 앙상블처럼 여러 연주자가 함께 연주하는 것과 같은 개념입니다. 검색에서는 <span class="highlight">여러 검색 방식을 동시에 사용하여 각자의 장점을 결합</span>하는 기법입니다.</p>
+
+            <h3>📊 앙상블 검색의 작동 방식</h3>
+            <div class="ensemble-diagram">
+                <pre>쿼리: "인공지능 최신 트렌드"
+    ↓
+┌────────────────────────────────┐
+│   앙상블 검색 (병렬 실행)      │
+├────────────────────────────────┤
+│ 🔮 Dense Search   📝 Sparse    │
+│ 결과:             결과:        │
+│ 1. 문서A          1. 문서C     │
+│ 2. 문서B          2. 문서D     │
+│ 3. 문서C          3. 문서A     │
+└────────────────────────────────┘
+    ↓
+RRF로 병합
+    ↓
+최종: C → A → B → D</pre>
+            </div>
+
+            <h3>✨ 앙상블의 장점</h3>
+            <ul style="line-height: 2; color: #374151;">
+                <li>• <strong>약점 보완:</strong> Dense가 놓친 키워드는 Sparse가 찾음</li>
+                <li>• <strong>정확도 향상:</strong> 단일 검색보다 포괄적</li>
+                <li>• <strong>강건성:</strong> 한 검색 실패해도 커버</li>
+                <li>• <strong>다양성:</strong> 여러 관점에서 평가</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔀 RRF (Reciprocal Rank Fusion)</h2>
+            <p>RRF는 <span class="highlight">여러 검색 결과를 하나로 합치는 알고리즘</span>입니다. 각 문서의 순위를 기반으로 점수를 계산합니다.</p>
+
+            <h3>📐 RRF 공식</h3>
+            <div class="formula-box">
+                <p style="color: #92400e; margin-bottom: 0.5rem;">각 문서의 최종 점수:</p>
+                <div class="formula">점수 = 1 / (순위 + k)</div>
+                <p style="color: #92400e; font-size: 0.9rem;">k = 60 (일반적), 순위 = 문서 위치 (1, 2, 3...)</p>
+            </div>
+
+            <h3>💡 구체적인 예시</h3>
+            <div class="example-box">
+                <div class="example-title">상황: "AI 트렌드" 검색</div>
+                
+                <div style="margin: 1rem 0;">
+                    <strong>Dense 검색:</strong>
+                    <div class="calculation">1등: 문서A, 2등: 문서B, 3등: 문서C</div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <strong>Sparse 검색:</strong>
+                    <div class="calculation">1등: 문서C, 2등: 문서D, 3등: 문서A</div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <strong>RRF 점수 (k=60):</strong>
+                    <div class="calculation">
+<strong>문서A:</strong>
+Dense 1등: 1/(1+60) = 0.0164
+Sparse 3등: 1/(3+60) = 0.0159
+<span class="highlight">총점 = 0.0323</span></div>
+
+                    <div class="calculation">
+<strong>문서C:</strong>
+Dense 3등: 1/(3+60) = 0.0159
+Sparse 1등: 1/(1+60) = 0.0164
+<span class="highlight">총점 = 0.0323</span></div>
+                </div>
+
+                <div style="background: #fef08a; padding: 1rem; border-radius: 0.5rem;">
+                    <strong>최종:</strong> 🥇 문서A & C (0.0323) - 두 검색에서 모두 높은 순위
+                </div>
+            </div>
+
+            <h3>🎯 RRF의 핵심</h3>
+            <ul style="line-height: 2; color: #374151;">
+                <li>• <strong>일관성 우선:</strong> 여러 검색에서 일관되게 높은 순위</li>
+                <li>• <strong>이상치 방지:</strong> 한 검색만 1등이면 최종 순위 하락</li>
+                <li>• <strong>튜닝 불필요:</strong> k값만 설정</li>
+            </ul>
+        </div>
+        
+        <div class="advantage-box">
+            <h3>🎯 하이브리드 검색의 장점</h3>
+            <div class="advantage-grid">
+                <div class="advantage-item">
+                    <span>정확도 향상:</span> 두 방식의 장점 활용
+                </div>
+                <div class="advantage-item">
+                    <span>강건성:</span> 약점을 서로 보완
+                </div>
+                <div class="advantage-item">
+                    <span>유연성:</span> 다양한 쿼리 대응
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
