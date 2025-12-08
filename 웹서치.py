@@ -180,7 +180,7 @@ def choose_prompt(question: str):
     """질문 유형에 따라 적절한 프롬프트 선택"""
     recommend_keywords = ["추천", "맞는", "신청할 수 있는", "지원해주는", 
                          "사업 알려줘", "혜택", "지원금", "지원사업"]
-    law_keywords = ["정의", "자격", "요건", "지원법", "법에서", "법상", "제도"] #시행,규정
+    law_keywords = ["정의", "자격", "요건", "지원법", "법에서", "법상", "제도", "시행","규정"]
     
     if any(k in question for k in recommend_keywords):
         return recommend_prompt, "recommend_prompt"
