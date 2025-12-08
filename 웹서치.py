@@ -156,7 +156,7 @@ recommend_prompt = ChatPromptTemplate.from_messages([
     ("human", "[지원사업 문맥]\n{context}\n\n[사용자 조건]\n{question}\n\n위 형식에 맞춰 추천해 주세요.")
 ])
 
-# Fallback 프롬프트 (LLM 자체 지식으로 답변)
+# Fallback 프롬프트
 fallback_prompt = ChatPromptTemplate.from_template("""
 질문: {question}
 
