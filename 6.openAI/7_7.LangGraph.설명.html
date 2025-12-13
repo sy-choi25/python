@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangGraph 기반 RAG 시스템 요약</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            border-bottom: 3px solid #1a73e8;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        h2 {
+            color: #3c4043;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 5px solid #a1c9f7;
+        }
+        .section-box {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c4d7f7;
+        }
+        .step-list {
+            list-style: none;
+            padding: 0;
+        }
+        .step-list li {
+            background: #ffffff;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #34a853;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .step-title {
+            font-weight: bold;
+            color: #185c37;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        .code-block {
+            background-color: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .highlight-state { color: #f92672; font-weight: bold; } /* TypedDict, State */
+        .highlight-node { color: #66d9ef; font-weight: bold; } /* Node Function */
+        .highlight-edge { color: #a6e22e; font-weight: bold; } /* Edge/Connection */
+        .highlight-value { color: #fd971f; } /* Value */
+        .flow-diagram {
+            padding: 20px;
+            background: #f7f9fb;
+            border: 1px dashed #c1c1c1;
+            border-radius: 8px;
+            white-space: pre;
+            font-family: monospace;
+            font-size: 1em;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ LangGraph 기반 RAG 시스템 핵심 요약</h1>
+
+        <div class="section-box">
+            <h2>1. 🏛️ 기본 구조 (State, Node, Edge)</h2>
+            <ul class="step-list">
+                <li>
+                    <div class="step-title">State (상태)</div>
+                    <p>에이전트 전체의 공용 저장소입니다. 모든 노드가 이 <span class="highlight-state">딕셔너리(`TypedDict`)</span>를 공유하며 값을 업데이트합니다.</p>
+                    <div class="code-block">
+                        <span class="highlight-state">class RAGState(TypedDict):</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;question: str<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;documents: List[Document]<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;search_type: str  <span style="color:#75715e;"># internal/web</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;answer: str<br>
+                    </div>
+                </li>
+                <li>
+                    <div class="step-title">Node (노드)</div>
+                    <p>실제 작업을 수행하는 함수입니다. <span class="highlight-node">State</span>를 입력받아 업데이트할 내용을 <span class="highlight-node">Dict 형태로 반환</span>합니다.</p>
+                    <div class="code-block">
+                        <span class="highlight-node">def retrieve_node(state: RAGState) -> dict:</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;# ... 검색 로직 실행 ...<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;return {'documents': <span class="highlight-value">검색된_문서</span>, 'search_type': <span class="highlight-value">'internal'</span>}<br>
+                    </div>
+                </li>
+                <li>
+                    <div class="step-title">Edge (엣지)</div>
+                    <p>노드 간의 흐름을 정의합니다.</p>
+                    <div class="code-block">
+                        graph.add_edge(<span class="highlight-edge">START</span>, <span class="highlight-node">'retriever'</span>)<br>
+                        graph.add_edge(<span class="highlight-node">'web_search'</span>, <span class="highlight-node">'generate'</span>)<br>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <h2>2. 🚀 조건부 분기 (Conditional Edge)</h2>
+        <div class="section-box">
+            <p>LangGraph의 핵심 기능으로, 특정 조건(<span class="highlight-node">결정 함수</span>)에 따라 다음 실행 노드를 동적으로 결정합니다.</p>
+            
+            <div class="step-list">
+                <li>
+                    <div class="step-title">Decide 함수</div>
+                    <p><span class="highlight-state">State</span>를 확인하여 다음 노드의 이름을 문자열로 반환합니다. 반환 값은 <span class="highlight-value">Literal</span>로 정의된 값 중 하나여야 합니다.</p>
+                    <div class="code-block">
+                        <span class="highlight-node">def decide_to_generate(state: RAGState) -> Literal['generate', 'web_search']:</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;if state['documents']:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <span class="highlight-value">'generate'</span>  <span style="color:#75715e;"># 문서가 있으면 답변 생성</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <span class="highlight-value">'web_search'</span> <span style="color:#75715e;"># 문서가 없으면 웹 검색</span><br>
+                    </div>
+                </li>
+                <li>
+                    <div class="step-title">Conditional Edge 연결</div>
+                    <p>이 함수를 그래프에 연결하여 분기점을 만듭니다.</p>
+                    <div class="code-block">
+                        graph.<span class="highlight-edge">add_conditional_edges</span>(<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight-node">'grade'</span>,  <span style="color:#75715e;"># 현재 노드</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight-node">decide_to_generate</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="highlight-value">'generate'</span>:<span class="highlight-value">'generate'</span>, <span class="highlight-value">'web_search'</span>: <span class="highlight-value">'web_search'</span> }<br>
+                        )<br>
+                    </div>
+                </li>
+            </div>
+        </div>
+
+        <h2>3. 🗺️ 최종 RAG 흐름 다이어그램</h2>
+        <div class="flow-diagram">
+            START 
+              ↓
+            <span class="highlight-node">retriever (VectorDB 검색)</span>
+              ↓
+            <span class="highlight-node">grade (유사도 점수 기반 문서 필터링)</span>
+              ↓
+            <span class="highlight-edge">decide_to_generate (조건부 분기)</span>
+            
+            <span style="color: #34a853;">[문서 O]</span> ↓                  [문서 X] ↓ <span style="color: #ea4335;">(재검색)</span>
+                   <span class="highlight-node">generate</span> ←---------- <span class="highlight-node">web_search (웹 검색 시뮬레이션)</span>
+                       ↓
+                      END
+        </div>
+
+        <h2>4. 🧩 주요 노드 설명 (첨부 파일 기반)</h2>
+        <div class="step-list">
+            <li>
+                <div class="step-title"><span class="highlight-node">retrieve_node</span></div>
+                <p>질문을 <span class="highlight-value">VectorDB</span>에 검색하여 관련 <span class="highlight-value">문서</span>와 <span class="highlight-value">유사도 점수</span>를 반환하고 State에 저장합니다.</p>
+                <div class="code-block">
+                    docs_with_scores = <span class="highlight-value">vectorstores.similarity_search_with_score</span>(quesiton, k = 3)
+                </div>
+            </li>
+            <li>
+                <div class="step-title"><span class="highlight-node">grade_documents_node</span></div>
+                <p>검색된 문서들의 유사도 점수를 <span class="highlight-value">임계값(threshold=0.3)</span>과 비교하여 관련 없는 문서를 제거(필터링)합니다.</p>
+                <div class="code-block">
+                    if score >= <span class="highlight-value">threshold</span>:
+                </div>
+            </li>
+            <li>
+                <div class="step-title"><span class="highlight-node">web_search_node</span></div>
+                <p>내부 문서가 충분하지 않을 경우(유사도 통과 문서 0개), 외부 검색(시뮬레이션)을 수행하여 새로운 문서를 State에 추가합니다.</p>
+            </li>
+            <li>
+                <div class="step-title"><span class="highlight-node">generate_node</span></div>
+                <p>최종으로 State에 저장된 문서들(<span class="highlight-value">context</span>)을 바탕으로 <span class="highlight-value">LLM</span>을 사용하여 최종 답변을 생성합니다.</p>
+            </li>
+        </div>
+    </div>
+</body>
+</html>
