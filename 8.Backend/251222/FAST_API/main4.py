@@ -32,14 +32,14 @@ app.add_middleware(
     allow_headers=['*']     # 모든 헤더
 )
 
-# 데이터 모델(입력과 출력의 형태 제한)
+# 데이터 모델(입력과 출력의 형태 제한) -> title 필수, description 선택
 class TodoCreate(BaseModel):
     '''todo생성'''
     # 실제DB와 연결시.. DB에 설정된 정보가 있으면 같이 맞춰주면 좋음
     title:str = Field(...,min_length=1,max_length=100,description='할일 제목')      # title 필수
     description:Optional[str] = Field(None,max_length=500,description='할일 설명')  # description 선택
 
-class TodoResponse(BaseModel):
+class TodoResponse(BaseModel): # 서버가 반환하는 Todo 구조
     '''Todo 응답'''
     id:int
     title:str
@@ -52,7 +52,7 @@ class TodoUpdate(BaseModel):
     '''todo 수정 - 모든 필드는 선택적'''    # Field(...) 쓰면 필수처럼 동작/ 옵션이면 Field(None, ...) 써야 한다
     title:str = Field(...,min_length=1, max_length=100)
     description:Optional[str] = Field(None,max_length=500)
-    complieted:Optional[bool] = None
+    completed:Optional[bool] = None
     modified_at:str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # 저장소
@@ -64,7 +64,7 @@ next_id = 1
 def index():
     return '메인 페이지'
 
-# 추가
+# 추가 -> todo 생성
 @app.post('/todos',response_model=TodoResponse,status_code=status.HTTP_201_CREATED)
 def create_todo(todo:TodoCreate):
     '''todo 생성
@@ -80,7 +80,7 @@ def create_todo(todo:TodoCreate):
     new_data = TodoResponse(
         id=next_id,
         title=todo.title,
-        description=todo.descriprion,
+        description=todo.description,
         completed=False,
     )
     todos_db.append(new_data)
@@ -112,7 +112,7 @@ def update_todo(id:int, update_data:TodoUpdate):
     for todo in todos_db:
         if todo.id == id:
             print(f'수정 {update_data}')            
-            todo.modified_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            todo.modified_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S') # 현재 시각으로 갱신
             if update_data.title is not None:
                 todo.title = update_data.title
             if update_data.description is not None:
@@ -121,7 +121,7 @@ def update_todo(id:int, update_data:TodoUpdate):
                 todo.completed = update_data.completed                
             return todo
     
-# 삭제
+# 삭제 - id로 todo 삭제. 삭제 후 반환값 없음
 @app.delete('/todos/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(id:int):
     '''삭제'''
